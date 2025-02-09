@@ -1,22 +1,26 @@
+const { databases, DATABASE_ID, ANALYTICS_COLLECTION_ID } = require("../../databases/appwrite/appwrite");
+const { checkAliasEntry } = require("../../helpers/checkAliasEntry");
+const sdk = require('node-appwrite')
+
 async function getAnalyticsWithAlias(req, res) {
     const availableOS = ['Windows', 'MacOS', 'Linux', 'Unknown'];
     const availableDevice = ['Phone', 'Tablet', 'Desktop',];
 
-    const data = checkAliasEntry(req.alias)
-    if (!data.isExists) {
+    const data = checkAliasEntry(req.params.alias)
+    if (data.isExists) {
         return res.status(404).json({
             error: "Not Found",
-            message: `Alias ${req.alias} not found`
+            message: `Alias ${req.params.alias} not found`
         });
     }
 
     /* total clicks */
     const { documents } = await databases.listDocuments(DATABASE_ID, ANALYTICS_COLLECTION_ID, [
-        sdk.Query.equal('entries', data.entries.$id)
+        sdk.Query.equal('alias', req.params.alias)
     ])
 
     const totalClicks = documents.length;
-    const uniqueUsers = 0
+    let uniqueUsers = 0
     const clicksByDate = Array.from({ length: 7 }, () => 0)
 
     const osData = Array.from({ length: 4 }, (_, i) => {

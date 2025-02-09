@@ -1,3 +1,5 @@
+const https = require('https');
+
 const ipStackKey = process.env.IP_STACK_KEY
 function getAnalytics(req, _, next) {
     const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -12,6 +14,7 @@ function getAnalytics(req, _, next) {
         response.on('end', () => {
             const geoInfo = JSON.parse(data);
             const { country_name, city } = geoInfo;
+
             const userAgent = req.headers['user-agent'];
             let osType = 'Unknown';
             let deviceType = 'Desktop';
@@ -32,8 +35,8 @@ function getAnalytics(req, _, next) {
 
             req.userInfo = {
                 ipAddress,
-                geoLocationCity: city,
-                geoLocationCountry: country_name,
+                geoLocationCity: city || '',
+                geoLocationCountry: country_name || '',
                 osType,
                 deviceType
             };

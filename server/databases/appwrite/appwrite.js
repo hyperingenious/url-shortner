@@ -1,3 +1,4 @@
+require('dotenv').config()
 const sdk = require("node-appwrite");
 
 const APPWRITE_CLOUD_URL = process.env.APPWRITE_CLOUD_URL;
@@ -12,8 +13,8 @@ const client = new sdk.Client()
 const databases = new sdk.Databases(client);
 
 //  Constants
-const DATABASE_ID = process.env.DATABASE_ID;
-const ENTIRES_COLLECTION_ID = process.env.APPWRITE_ENTIRES_COLLECTION_ID
+const DATABASE_ID = process.env.DATABASE_ID
+const ENTIRES_COLLECTION_ID = process.env.APPWRITE_ENTRIES_COLLECTION_ID
 const ANALYTICS_COLLECTION_ID = process.env.APPWRITE_ANALYTICS_COLLECTION_ID
 
 

@@ -5,16 +5,20 @@ const { areDatesEqual } = require("../../helpers/compareDate");
 async function overall(req, res) {
     try {
         // Throwing error if user id not present
-        const user_id = req.body?.user_id;
+        const user_id = req.query?.user_id;
         if (!user_id) res.status(400).json({ error: "Bad Request", message: "missing user_id" })
 
         // Getting total urls creaed by user
-        const { documents: entires } = databases.listDocuments(DATABASE_ID, ENTIRES_COLLECTION_ID, [sdk.Query.equal('user_id', user_id), sdk.Query.select(['$id'])])
+        const { documents: entires } = await databases.listDocuments(DATABASE_ID, ENTIRES_COLLECTION_ID, [sdk.Query.equal('user_id', user_id), sdk.Query.select(['$id']), sdk.Query.limit(38398383)])
         const totalUrls = entires.length;
 
+        let documents = [];
 
         // getting all the clicks data with user_id
-        const { documents } = databases.listDocuments(DATABASE_ID, ANALYTICS_COLLECTION_ID, [sdk.Query.equal('entries', user_id)])
+        for (let i = 0; i < entires.length; ++i) {
+            const { documents: alskdfk } = await databases.listDocuments(DATABASE_ID, ANALYTICS_COLLECTION_ID, [sdk.Query.equal('entries', entires[i].$id), sdk.Query.limit(82383838)])
+            documents = [...documents, ...alskdfk]
+        }
 
         const uniqueUserSet = new Set();
         const totalClicks = documents.length
@@ -28,7 +32,7 @@ async function overall(req, res) {
 
         // getting all the clicks datewise
         const allDateArray = [];
-        documents.forEach(el => allDateArray.push(el.createdAt.split('T')[0]))
+        documents.forEach(el => allDateArray.push(el.$createdAt.split('T')[0]))
         const uniqueDatesSet = new Set(allDateArray)
         const uniqueDatesArray = [...uniqueDatesSet]
 
@@ -64,9 +68,9 @@ async function overall(req, res) {
         const uniqueUsersIPs = new Set()
 
         // here goes the logic for groupign data
-        for (let i = 0; i < totalUrls; ++i) {
+        for (let i = 0; i < documents.length; ++i) {
             const doc = documents[i]
-            const ip = doc.i
+            const ip = doc.ip
 
             const deviceIndex = availableDevice.indexOf(doc.device_type)
             const osIndex = availableOS.indexOf(doc.os_type)

@@ -1,6 +1,6 @@
 const sdk = require("node-appwrite");
-const { databases, DATABASE_ID, ENTIRES_COLLECTION_ID } = require("../../../databases/appwrite/appwrite");
-const { checkAliasEntry } = require("../../../helpers/checkAliasEntry");
+const { databases, DATABASE_ID, ENTIRES_COLLECTION_ID } = require("../../databases/appwrite/appwrite");
+const { checkAliasEntry } = require("../../helpers/checkAliasEntry");
 
 async function shorten(req, res) {
     if (!req.body.longUrl || !req.body.user_id) {
@@ -12,7 +12,7 @@ async function shorten(req, res) {
 
     try {
         const { isExists } = await checkAliasEntry(customAlias);
-        if (!isExists) {
+        if (isExists) {
             return res.status(400).json({
                 error: "Bad Request",
                 message: "Alias already exists"
@@ -36,3 +36,53 @@ async function shorten(req, res) {
 }
 
 module.exports = { shorten }
+/*
+curl -X POST "http://localhost:3000/api/shorten" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "longUrl": "https://example.com",
+    "user_id": "user_2oFLUNePrbPyBH1zJL4gV4mn7Kp",
+    "customAlias": "sdfdds",
+    "topic": "tech"
+  }'
+&
+curl -X POST "http://localhost:3000/api/shorten" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "longUrl": "https://example.com",
+    "user_id": "user_2oFLUNePrbPyBH1zJL4gV4mn7Kp",
+    "customAlias": "sd9dds",
+    "topic": "tech"
+  }'
+&
+curl -X POST "http://localhost:3000/api/shorten" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "longUrl": "https://example.com",
+    "user_id": "user_2oFLUNePrbPyBH1zJL4gV4mn7Kp",
+    "customAlias": "sdpdds",
+    "topic": "tech"
+  }'
+&
+curl -X POST "http://localhost:3000/api/shorten" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "longUrl": "https://example.com",
+    "user_id": "user_2oFLUNePrbPyBH1zJL4gV4mn7Kp",
+    "customAlias": "sdudds",
+    "topic": "tech"
+  }'
+&
+curl -X POST "http://localhost:3000/api/shorten" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "longUrl": "https://example.com",
+    "user_id": "user_2oFLUNePrbPyBH1zJL4gV4mn7Kp",
+    "customAlias": "dsdfdds",
+    "topic": "tech"
+  }'
+
+
+
+
+*/

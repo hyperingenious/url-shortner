@@ -2,11 +2,21 @@ const { databases, DATABASE_ID, ENTIRES_COLLECTION_ID, ANALYTICS_COLLECTION_ID }
 
 const sdk = require("node-appwrite");
 const { areDatesEqual } = require("../../helpers/compareDate");
+const client = require("../../redis/client");
 async function overall(req, res) {
     try {
         // Throwing error if user id not present
         const user_id = req.query?.user_id;
         if (!user_id) res.status(400).json({ error: "Bad Request", message: "missing user_id" })
+
+        const key = `overall:${user_id}`
+        const value = await client.get(key)
+
+        if (value !== null) {
+            const data = JSON.parse(value)
+            
+            return res.status(200).json(data)
+        }
 
         // Getting total urls creaed by user
         const { documents: entires } = await databases.listDocuments(DATABASE_ID, ENTIRES_COLLECTION_ID, [sdk.Query.equal('user_id', user_id), sdk.Query.select(['$id']), sdk.Query.limit(38398383)])
@@ -43,7 +53,6 @@ async function overall(req, res) {
                 totalClick: countedUrl.length
             })
         })
-
 
         // array containing all the OS and devices
         const availableOS = ['Windows', 'MacOS', 'Linux', 'Unknown'];
@@ -99,8 +108,9 @@ async function overall(req, res) {
             uniqueUsers: uniqueUserSet.size,
             clicksByDate, osType: osData, deviceType: deviceData
         }
-
-        res.status(200).json(response)
+        const stringified_data = JSON.stringify(response);
+        await client.set(key, stringified_data, 1 * 60 * 10)
+        return res.status(200).json(response)
 
     } catch (error) {
         console.error(error)

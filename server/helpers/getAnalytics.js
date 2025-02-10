@@ -1,6 +1,12 @@
 const https = require('https');
 
 const ipStackKey = process.env.IP_STACK_KEY
+/**
+ * takes in user quest then finds all the things related to request like user ip , desktop or phone, city etc 
+ * @param {Request} req 
+ * @param {_} _ 
+ * @param {*} next 
+ */
 function getAnalytics(req, _, next) {
     const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const geoUrl = `https://api.ipstack.com/${ipAddress}?access_key=${ipStackKey}`;

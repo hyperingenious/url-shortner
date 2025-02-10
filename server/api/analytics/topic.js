@@ -1,22 +1,35 @@
 const { databases, DATABASE_ID, ENTIRES_COLLECTION_ID, ANALYTICS_COLLECTION_ID } = require('../../databases/appwrite/appwrite');
-const { areDatesEqual } = require('../../helpers/compareDate');
 const sdk = require("node-appwrite");
+const client = require('../../redis/client');
 
+/**
+ * @description Gets the analytics for a given topic and user ID.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @returns {Promise<void>}
+ */
 async function getAnalyticsByTopic(req, res) {
     try {
-        const topic = req.params.topic;
-        const user_id = req.body?.user_id
+        const topic = req.params?.topic;
+        const user_id = req.query?.user_id
 
+        const key = `analytics_by_topic_and_user_id:${topic}:${user_id}`
+        const cachedData = await client.get(key)
 
-        if (!user_id) {
-            return res.status(400).json({ error: "Bad Request", message: "user_id missing" })
+        if (cachedData !== null) {
+            const cachedDataParsed = JSON.parse(cachedData)
+            return res.status(200).json(cachedDataParsed)
+        }
+
+        if (!user_id || !topic) {
+            return res.status(400).json({ error: "Bad Request", message: "user_id missing" });
         }
 
         // Getting all the url entries based on the topic
         const entries = await databases.listDocuments(DATABASE_ID, ENTIRES_COLLECTION_ID, [sdk.Query.equal('user_id', user_id), sdk.Query.equal('topic', topic), sdk.Query.select(['$id', 'alias'])]);
 
-        if(entries.documents.length === 0){
-            return res.status(404).json({error: "Not Found", message: `No entries found for topic ${topic} and user ${user_id}`})
+        if (entries.documents.length === 0) {
+            return res.status(404).json({ error: "Not Found", message: `No entries found for topic ${topic} and user ${user_id}` })
         }
 
         const entriesData = [];
@@ -28,7 +41,7 @@ async function getAnalyticsByTopic(req, res) {
         for (let i = 0; i < entries.documents.length; ++i) {
             const entry = entries.documents[i];
             const { documents: newDocs } = await databases.listDocuments(DATABASE_ID, ANALYTICS_COLLECTION_ID, [sdk.Query.equal('entries', entry.$id), sdk.Query.limit(10993923)]);
-            entriesData.push({...entry, analytics: newDocs});
+            entriesData.push({ ...entry, analytics: newDocs });
             totalClicks += newDocs.length;
             for (let j = 0; j < newDocs.length; ++j) {
                 uniqueUserSet.add(newDocs[j].ip);
@@ -57,7 +70,11 @@ async function getAnalyticsByTopic(req, res) {
             clicksByDate,
             urls
         };
-        res.status(200).json(response);
+
+        const stringify = JSON.stringify(response)
+        await client.set(key, stringify)
+
+        return res.status(200).json(response);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal server error", message: error.message });

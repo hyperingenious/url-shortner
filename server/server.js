@@ -3,12 +3,17 @@ const express = require('express');
 const { limiter } = require('./helpers/limiter');
 const { getAnalytics } = require('./helpers/getAnalytics');
 const app = express();
+const client = require('./redis/client')
 
 const { overall } = require('./api/analytics/overall');
 const { shorten } = require('./api/shorten/shorten');
 const { shortenAlias } = require('./api/shorten/alias');
 const { getAnalyticsByTopic } = require('./api/analytics/topic');
 const { getAnalyticsWithAlias } = require('./api/analytics/alias');
+
+(async () => await
+    client.set('mia', "Khalifa")
+)()
 
 app.use(express.json());
 app.use((req, res, next) => {
